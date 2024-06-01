@@ -67,3 +67,18 @@ sidebar:
 #   - vendor/cache/
 #   - vendor/gems/
 #   - vendor/ruby/
+
+imagemagick:
+  enabled: true
+  widths:
+    - 1024
+    - 512
+    - 0
+  input_directories:
+    - assets/files
+  input_formats:
+    - ".png"
+    - ".tiff"
+  output_formats:
+    jpg: "-quality 93% -define jpeg:dct-method=float -strip -interlace Plane"
+    webp: "-quality 100%"
