@@ -68,6 +68,9 @@ sidebar:
   - title: Tags
     path: /tags
 
+#feature tag
+featured-tags: true
+featured-condition-size: 1
 
 # gitalk
 gitalk:
