@@ -46,6 +46,7 @@
   margin-bottom: 20px;
 }
 .sidebar-container .short-about .list-inline > li {
+  display: inline-block;
   padding-left: 0px;
 }
 .catalog-container {
@@ -689,6 +690,10 @@ footer {
 footer .list-inline {
   margin: 0;
   padding: 0;
+}
+footer .list-inline > li {
+  display: inline-block;
+  padding-left: 0px;
 }
 footer .copyright {
   font-size: 14px;
