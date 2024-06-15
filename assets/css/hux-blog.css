@@ -417,6 +417,10 @@ pre code {
   font-weight: 800;
   letter-spacing: 1px;
 }
+.navbar-custom .nav > li {
+  display: inline-block;
+  padding-left: 0px;
+}
 .navbar-custom .nav li a:active {
   background: rgba(0, 0, 0, 0.12);
 }

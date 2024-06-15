@@ -1,0 +1,28 @@
+{
+    "name": "wan-blog",
+    "title": "WAN Blog",
+    "author": "WAN <jason.jc.wang@outlook.com>",
+    "version": "1.7.0",
+    "homepage": "http://coolgenerator.github.io",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/coolgenerator/coolgenerator.github.io"
+    },
+    "bugs": "https://github.com/coolgenerator/coolgenerator.github.io/issues",
+    "devDependencies": {
+        "grunt": ">=1.6.0",
+        "grunt-contrib-less": "~3.0.0",
+        "grunt-contrib-watch": "~1.1.0",
+        "grunt-banner": "~0.6.0",
+        "grunt-contrib-uglify": "~5.2.2"
+    },
+    "scripts": {
+        "preview": "cd _site; python -m SimpleHTTPServer 8020",
+        "py3view": "cd _site; python3 -m http.server 8020",
+        "watch"  : "grunt watch & npm run preview & jekyll serve -w",
+        "py3wa"  : "grunt watch & npm run py3view & jekyll serve -w",
+        "boil"   : "git push boilerplate boilerplate:master",
+        "push"   : "git push origin master --tag",
+        "cafe"   : "git co gitcafe-pages; git merge master; git push gitcafe gitcafe-pages:gitcafe-pages --tag; git co master;"
+    }
+}
