@@ -10,29 +10,92 @@ interface Props {
 const { lang } = Astro.props;
 const t = useTranslations(lang);
 const posts = (await getLocalized('blog', lang)).filter(({ entry }) => !entry.data.draft).sort(byDateDesc);
+
+// 中文按 400 字/分钟，英文按 200 词/分钟估算
+function readingMinutes(body = '') {
+  const text = body.replace(/```[\s\S]*?```/g, ' ');
+  const cjk = (text.match(/[㐀-鿿]/g) ?? []).length;
+  const words = (text.replace(/[㐀-鿿]/g, ' ').match(/\S+/g) ?? []).length;
+  return Math.max(1, Math.round(cjk / 400 + words / 200));
+}
+
+const rows = posts.map(({ entry, slug, fallback }) => ({
+  href: localizePath(`/blog/${slug}/`, lang),
+  file: `${slug}.md`,
+  date: entry.data.date.toISOString().slice(0, 10),
+  minutes: readingMinutes(entry.body),
+  title: entry.data.title,
+  description: entry.data.description,
+  tags: entry.data.tags,
+  fallback,
+}));
 ---
 
 <Base lang={lang} title="Blog" description={t('blog.description')}>
   <header class="page-head">
     <h1>~/blog</h1>
-    <p>{t('blog.count', { n: posts.length })}</p>
+    <p>{t('blog.count', { n: rows.length })}</p>
   </header>
-  <ul class="posts">
-    {posts.map(({ entry, slug }) => (
-      <li>
-        <time>{entry.data.date.toISOString().slice(0, 10)}</time>
-        <div>
-          <a href={localizePath(`/blog/${slug}/`, lang)}>{entry.data.title}</a>
-          {entry.data.description && <p>{entry.data.description}</p>}
-        </div>
-      </li>
-    ))}
-  </ul>
+
+  <section>
+    <h2 class="prompt-title"><b>$</b> ls -lt ~/blog</h2>
+    {rows.length === 0 ? (
+      <p class="empty">ls: ~/blog: {t('blog.empty')}</p>
+    ) : (
+      <>
+        <p class="total">total {rows.length}</p>
+        <ol class="ls">
+          {rows.map((r) => (
+            <li>
+              <a href={r.href}>
+                <span class="perm" aria-hidden="true">-rw-r--r--</span>
+                <span class="size">{t('blog.minutes', { n: r.minutes })}</span>
+                <time datetime={r.date}>{r.date}</time>
+                <span class="file">{r.file}{r.fallback && <span class="lang"> ({lang === 'zh' ? 'en' : 'zh'})</span>}</span>
+                <span class="info">
+                  <span class="title"><span class="hash" aria-hidden="true"># </span>{r.title}</span>
+                  {r.description && <span class="desc">{r.description}</span>}
+                  {r.tags.length > 0 && <span class="tags">{r.tags.map((tag) => <span>{tag}</span>)}</span>}
+                </span>
+              </a>
+            </li>
+          ))}
+        </ol>
+      </>
+    )}
+    <p class="cursor"><b>$</b> <span class="caret"></span></p>
+  </section>
 </Base>
 
 <style>
-  .posts { list-style: none; margin-top: 40px; }
-  .posts li { display: flex; gap: 24px; padding: 16px 0; border-bottom: 1px dashed var(--line); }
-  time { color: var(--dim); font-size: 13px; padding-top: 2px; white-space: nowrap; }
-  p { color: var(--dim); font-size: 13px; margin-top: 4px; }
+  section { padding-top: 40px; }
+  .total, .empty { color: var(--dim); font-size: 13px; margin-bottom: 8px; }
+  .ls { list-style: none; font-size: 14px; }
+  .ls a {
+    display: grid; grid-template-columns: 96px 72px 104px 1fr; column-gap: 16px; row-gap: 4px;
+    padding: 14px 12px; margin: 0 -12px; border-radius: 4px; color: var(--fg);
+    border-left: 2px solid transparent; transition: background .15s, border-color .15s;
+  }
+  .ls a:hover { background: rgba(57, 255, 136, .06); color: var(--fg); border-left-color: var(--green); }
+  .ls a:hover .file { text-decoration: underline; }
+  .perm, .size { color: var(--dim); }
+  time { color: var(--soft); }
+  .file { color: var(--green); }
+  .lang { color: var(--dim); }
+  .info { grid-column: 4; display: flex; flex-direction: column; gap: 4px; }
+  .title { color: var(--fg); font-weight: 600; }
+  .hash { color: var(--dim); font-weight: 400; }
+  .desc { color: var(--dim); font-size: 13px; }
+  .tags { margin-top: 2px; }
+  .cursor { margin-top: 20px; font-size: 14px; }
+  .cursor b { color: var(--green); font-weight: 400; }
+
+  @media (max-width: 720px) {
+    .ls a { grid-template-columns: auto auto 1fr; column-gap: 12px; }
+    .perm { display: none; }
+    .size { order: 2; }
+    time { order: 1; }
+    .file { order: 3; grid-column: 1 / -1; }
+    .info { order: 4; grid-column: 1 / -1; }
+  }
 </style>

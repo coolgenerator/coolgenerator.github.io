@@ -5,7 +5,7 @@ export const langs = Object.keys(languages) as Lang[];
 
 export const ui = {
   en: {
-    'meta.description': 'Jason Wang — M.S. Data Science student at UC San Diego. Machine learning, NLP and analytics projects.',
+    'meta.description': 'Jason Wang — M.S. Data Science student at UC San Diego. Machine learning, reinforcement learning, AI agents, causal analysis and quant.',
     'hero.hint': 'Try typing',
     'about.contact': 'Say hi',
     'contact.description': 'Get in touch with Jason Wang — email, GitHub and LinkedIn.',
@@ -18,9 +18,11 @@ export const ui = {
     'projects.placeholder': '# sample projects, placeholder content',
     'projects.more': 'cd ~/projects →',
     'projects.count': '{n} items · sorted by date desc',
-    'projects.description': 'Portfolio of Jason Wang: machine learning, NLP and data analytics projects.',
+    'projects.description': 'Portfolio of Jason Wang: machine learning, reinforcement learning, AI agents, causal analysis and quant projects.',
     'projects.view': 'View',
     'blog.count': '{n} posts',
+    'blog.minutes': '{n} min',
+    'blog.empty': 'no posts yet',
     'blog.description': 'Notes on data science and machine learning by Jason Wang.',
     'fallback.notice': 'This page is not translated yet — showing the Chinese version.',
     'footer.built': 'built with Astro and too much caffeine',
@@ -32,7 +34,7 @@ export const ui = {
     'term.langUsage': 'usage: <em>lang en</em> | <em>lang zh</em>',
   },
   zh: {
-    'meta.description': '王劼辰（Jason Wang）— UC San Diego 数据科学硕士在读。机器学习、NLP 与数据分析作品集。',
+    'meta.description': '王劼辰（Jason Wang）— UC San Diego 数据科学硕士在读。机器学习、强化学习、AI 智能体、因果分析与量化作品集。',
     'hero.hint': '试试输入',
     'about.contact': '打个招呼',
     'contact.description': '联系王劼辰（Jason Wang）：邮箱、GitHub 与 LinkedIn。',
@@ -45,9 +47,11 @@ export const ui = {
     'projects.placeholder': '# 示例作品，内容为占位',
     'projects.more': 'cd ~/projects →',
     'projects.count': '共 {n} 个 · 按时间倒序',
-    'projects.description': '王劼辰（Jason Wang）的作品集：机器学习、NLP 与数据分析项目。',
+    'projects.description': '王劼辰（Jason Wang）的作品集：机器学习、强化学习、AI 智能体、因果分析与量化项目。',
     'projects.view': '查看',
     'blog.count': '共 {n} 篇',
+    'blog.minutes': '{n} 分钟',
+    'blog.empty': '还没有文章',
     'blog.description': '王劼辰（Jason Wang）的博客：数据科学与机器学习笔记。',
     'fallback.notice': '本页暂无中文版，以下为英文原文。',
     'footer.built': '用 Astro 和过量咖啡构建',

@@ -132,7 +132,7 @@ const [first, ...rest] = profile.name.toUpperCase().split(' ');
     bio: string[];
     email: string;
     links: { label: string; href: string }[];
-    skills: [string, number][];
+    skills: { group: string; items: string[] }[];
   };
 
   const screen = document.getElementById('screen')!;
@@ -145,7 +145,7 @@ const [first, ...rest] = profile.name.toUpperCase().split(' ');
   const bootLines: [string, string][] = [
     ['[  0.000] booting portfolio kernel v2026.10 ...', ''],
     ['[  0.112] mounting /projects ............ ', 'ok'],
-    ['[  0.204] loading modules: ml nlp analytics', 'ok'],
+    ['[  0.204] loading modules: ml rl agents causal quant', 'ok'],
     ['[  0.318] warning: coffee level low', 'warn'],
     ['[  0.420] welcome, visitor.', 'ok'],
   ];
@@ -185,15 +185,16 @@ const [first, ...rest] = profile.name.toUpperCase().split(' ');
   const t = (key: string, vars: Record<string, string> = {}) => p.t[key].replace(/\{(\w+)\}/g, (_, k) => vars[k] ?? '');
   const go = (href: string, msg: string) => { setTimeout(() => (location.href = href), 400); return msg; };
   const mail = `<a href="mailto:${p.email}">${esc(p.email)}</a>`;
-  const bar = (v: number) => '█'.repeat(v) + '░'.repeat(10 - v);
   const commands: Record<string, (arg: string) => string> = {
     help: () => t('term.help') + ' ' + ['whoami', 'ls', 'projects', 'blog', 'skills', 'contact', 'links', 'lang', 'clear'].map((c) => `<em>${c}</em>`).join('  '),
     whoami: () => p.bio.map(esc).join('\n'),
-    ls: () => 'about.md  projects/  blog/  contact.txt',
+    ls: () => 'about.md  projects/  blog/  contact.txt  trumpet.wav',
+    // 彩蛋：不在 help 里列出
+    trumpet: () => '<em>♪ ♫ ♪</em>  ┌─◯═══════╗\n          ╞═╪╪╪══════╣◀))\n          └─────────╝\n  ♫ ♪ ♫   now playing: scales in B♭',
     projects: () => go(p.paths.projects, t('term.opening', { path: '~/projects' })),
     blog: () => go(p.paths.blog, t('term.opening', { path: '~/blog' })),
     lang: (arg) => (p.langs.includes(arg) && arg !== p.lang ? go(p.paths.home[arg], t('term.lang')) : t('term.langUsage')),
-    skills: () => p.skills.map(([k, v]) => `${k.padEnd(14)} ${bar(v)}`).join('\n'),
+    skills: () => p.skills.map(({ group, items }) => `<em>${group.padEnd(10)}</em> ${items.map(esc).join(' · ')}`).join('\n'),
     contact: () => go(p.paths.contact, t('term.opening', { path: '~/contact' })),
     links: () => [`email     <em>${esc(p.email)}</em>`, ...p.links.map((l) => `${l.label.padEnd(9)} <a href="${l.href}" target="_blank" rel="noopener">${esc(l.href.replace(/^https?:\/\//, ''))}</a>`)].join('\n'),
     'sudo hire-me': () => `[sudo] password for recruiter: ********\n${t('term.hire', { email: mail })}`,

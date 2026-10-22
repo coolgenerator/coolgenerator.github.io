@@ -54,15 +54,19 @@ const hasPlaceholder = projects.some(({ entry }) => entry.data.placeholder);
 
   <section id="skills">
     <h2 class="prompt-title"><b>$</b> cat skills.json | jq</h2>
-    <div class="skills">
-      {profile.skills.map(([name, level]) => (
-        <div class="skill">
-          <span>"{name}"</span>
-          <span class="fill" aria-label={`${level}/10`}>
-            {'█'.repeat(level * 2)}<span>{'█'.repeat(20 - level * 2)}</span>
-          </span>
+    <div class="json">
+      <div>{'{'}</div>
+      {profile.skills.map(({ group, items }, i) => (
+        <div class="row">
+          <span class="key">"{group}"</span>: [
+          <span class="items">
+            {items.map((name, j) => (
+              <><span class="item">"{name}"{j < items.length - 1 && ','}</span>{' '}</>
+            ))}
+          </span>]{i < profile.skills.length - 1 && ','}
         </div>
       ))}
+      <div>{'}'}</div>
     </div>
   </section>
 
@@ -103,10 +107,11 @@ const hasPlaceholder = projects.some(({ entry }) => entry.data.placeholder);
   .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr)); gap: 18px; }
   .more { margin-top: 20px; font-size: 14px; }
 
-  .skills { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr)); gap: 10px 40px; font-size: 14px; }
-  .skill { display: grid; grid-template-columns: 140px 1fr; gap: 12px; align-items: center; }
-  .fill { color: var(--green); letter-spacing: -1px; overflow: hidden; white-space: nowrap; }
-  .fill span { color: var(--line); }
+  .json { font-size: 14px; line-height: 1.9; color: var(--dim); }
+  .json .row { padding-left: 4ch; text-indent: -2ch; }
+  .key { color: var(--amber); }
+  .items { display: inline; }
+  .item { white-space: nowrap; color: var(--fg); }
 
   .posts { list-style: none; font-size: 14px; }
   .posts li { display: flex; gap: 20px; padding: 10px 0; border-bottom: 1px dashed var(--line); }
@@ -114,6 +119,5 @@ const hasPlaceholder = projects.some(({ entry }) => entry.data.placeholder);
 
   @media (max-width: 560px) {
     .about { grid-template-columns: 1fr; }
-    .skill { grid-template-columns: 110px 1fr; }
   }
 </style>

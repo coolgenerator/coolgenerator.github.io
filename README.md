@@ -18,6 +18,7 @@ npm run build   # 输出到 dist/
   （字段见 `src/content.config.ts`，`featured: true` 会显示在首页）
 - 博客：`src/content/blog/<en|zh>/<slug>.md`
 - 只写了一种语言也没关系：另一种语言的页面会自动显示已有版本，并提示未翻译
+- 中文加粗时把全角标点放在 `**` 外面：写 `**角色**：…`，不要写 `**角色：**…`，否则加粗不生效
 - 终端命令：`src/components/TerminalHero.astro` 里的 `commands`
 
 ## 部署
