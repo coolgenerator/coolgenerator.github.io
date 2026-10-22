@@ -1,0 +1,38 @@
+---
+import { render, type CollectionEntry } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import { localizePath, useTranslations, type Lang } from '../i18n/ui';
+
+interface Props {
+  lang: Lang;
+  post: CollectionEntry<'blog'>;
+  fallback: boolean;
+}
+
+const { lang, post, fallback } = Astro.props;
+const t = useTranslations(lang);
+const { Content } = await render(post);
+const { title, description, date, tags } = post.data;
+---
+
+<Base lang={lang} title={title} description={description}>
+  <header class="page-head">
+    <p class="crumb"><a href={localizePath('/blog/', lang)}>~/blog</a>/</p>
+    <h1>{title}</h1>
+    <div class="row">
+      <time>{date.toISOString().slice(0, 10)}</time>
+      <div class="tags">{tags.map((tag) => <span>{tag}</span>)}</div>
+    </div>
+  </header>
+  {fallback && <p class="fallback"># {t('fallback.notice')}</p>}
+  <article class="prose">
+    <Content />
+  </article>
+</Base>
+
+<style>
+  .crumb { font-size: 13px; }
+  .row { display: flex; gap: 16px; align-items: center; margin-top: 12px; font-size: 13px; color: var(--dim); }
+  .fallback { margin-top: 24px; color: var(--amber); font-size: 13px; }
+  article { padding-top: 40px; }
+</style>

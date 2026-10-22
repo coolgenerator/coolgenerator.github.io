@@ -1,0 +1,13 @@
+---
+import BlogPost from '../../../views/BlogPost.astro';
+import { getLocalized } from '../../../i18n/content';
+
+export async function getStaticPaths() {
+  const items = await getLocalized('blog', 'zh');
+  return items
+    .filter(({ entry }) => !entry.data.draft)
+    .map(({ slug, entry, fallback }) => ({ params: { slug }, props: { post: entry, fallback } }));
+}
+---
+
+<BlogPost lang="zh" {...Astro.props} />

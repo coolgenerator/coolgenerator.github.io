@@ -1,0 +1,31 @@
+---
+import Base from '../layouts/Base.astro';
+import ProjectCard from '../components/ProjectCard.astro';
+import { byDateDesc, getLocalized } from '../i18n/content';
+import { useTranslations, type Lang } from '../i18n/ui';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+const projects = (await getLocalized('projects', lang)).sort(byDateDesc);
+---
+
+<Base lang={lang} title="Projects" description={t('projects.description')}>
+  <header class="page-head">
+    <h1>~/projects</h1>
+    <p>{t('projects.count', { n: projects.length })}</p>
+  </header>
+  <section>
+    <div class="cards">
+      {projects.map(({ entry, slug }) => <ProjectCard project={entry} slug={slug} lang={lang} />)}
+    </div>
+  </section>
+</Base>
+
+<style>
+  section { padding-top: 32px; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr)); gap: 18px; }
+</style>

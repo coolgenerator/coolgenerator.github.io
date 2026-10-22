@@ -1,0 +1,38 @@
+---
+import Base from '../layouts/Base.astro';
+import { byDateDesc, getLocalized } from '../i18n/content';
+import { localizePath, useTranslations, type Lang } from '../i18n/ui';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+const posts = (await getLocalized('blog', lang)).filter(({ entry }) => !entry.data.draft).sort(byDateDesc);
+---
+
+<Base lang={lang} title="Blog" description={t('blog.description')}>
+  <header class="page-head">
+    <h1>~/blog</h1>
+    <p>{t('blog.count', { n: posts.length })}</p>
+  </header>
+  <ul class="posts">
+    {posts.map(({ entry, slug }) => (
+      <li>
+        <time>{entry.data.date.toISOString().slice(0, 10)}</time>
+        <div>
+          <a href={localizePath(`/blog/${slug}/`, lang)}>{entry.data.title}</a>
+          {entry.data.description && <p>{entry.data.description}</p>}
+        </div>
+      </li>
+    ))}
+  </ul>
+</Base>
+
+<style>
+  .posts { list-style: none; margin-top: 40px; }
+  .posts li { display: flex; gap: 24px; padding: 16px 0; border-bottom: 1px dashed var(--line); }
+  time { color: var(--dim); font-size: 13px; padding-top: 2px; white-space: nowrap; }
+  p { color: var(--dim); font-size: 13px; margin-top: 4px; }
+</style>

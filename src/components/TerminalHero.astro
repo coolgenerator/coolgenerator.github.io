@@ -1,0 +1,236 @@
+---
+import { getProfile } from '../data/profile';
+import { langs, localizePath, ui, type Lang } from '../i18n/ui';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const profile = getProfile(lang);
+
+// 传给客户端脚本的数据
+const data = {
+  lang,
+  langs,
+  roles: profile.roles,
+  bio: profile.bio,
+  email: profile.email,
+  links: profile.links,
+  skills: profile.skills,
+  paths: {
+    projects: localizePath('/projects/', lang),
+    blog: localizePath('/blog/', lang),
+    contact: localizePath('/contact/', lang),
+    home: Object.fromEntries(langs.map((l) => [l, localizePath('/', l)])),
+  },
+  t: Object.fromEntries(Object.entries(ui[lang]).filter(([k]) => k.startsWith('term.'))),
+};
+const hints = ['help', 'whoami', 'projects', 'skills', `lang ${lang === 'zh' ? 'en' : 'zh'}`, 'sudo hire-me'];
+const [first, ...rest] = profile.name.toUpperCase().split(' ');
+---
+
+<div class="window">
+  <div class="bar">
+    <i style="background:#ff5f56"></i><i style="background:#ffbd2e"></i><i style="background:#27c93f"></i>
+    <span>zsh — {profile.handle} — 120×40</span>
+  </div>
+  <div class="screen" id="screen" data-profile={JSON.stringify(data)}>
+    <!-- 背景行草水印。志莽行书没有「劼」，用同一字体的「吉」「力」横向压缩拼成 -->
+    <div class="wm" aria-hidden="true">王<span class="jie"><span>吉</span><span>力</span></span>辰</div>
+    <div class="log" id="log" aria-hidden="true"></div>
+    <h1 class="name" id="name">{first}<br />{rest.join(' ')}_{lang === 'zh' && <span class="sr-only"> {profile.nameZh}</span>}</h1>
+    <div class="role" id="role"><span class="k">&gt;</span> currently {profile.roles[0]}</div>
+    <div class="meta reveal">
+      {profile.meta.map((m) => <span><b>{m.k}</b> {m.v}</span>)}
+    </div>
+    <div class="out" id="out" aria-live="polite"></div>
+    <div class="prompt reveal">
+      <label for="cmd">{profile.handle}:~$</label>
+      <input id="cmd" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Terminal command" />
+    </div>
+    <div class="hint reveal">
+      {ui[lang]['hero.hint']}{' '}
+      {hints.map((h, i) => <>{i > 0 && (lang === 'zh' ? '、' : ', ')}<code>{h}</code></>)}
+    </div>
+  </div>
+</div>
+
+<style>
+  .window {
+    margin-top: clamp(32px, 7vh, 72px);
+    border: 1px solid var(--line); border-radius: 10px; overflow: hidden;
+    background: linear-gradient(180deg, rgba(11, 17, 16, .92), rgba(6, 8, 10, .92));
+    box-shadow: 0 0 0 1px rgba(57, 255, 136, .04), 0 30px 80px -20px rgba(57, 255, 136, .18);
+  }
+  .bar { display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-bottom: 1px solid var(--line); font-size: 12px; color: var(--dim); }
+  .bar i { width: 11px; height: 11px; border-radius: 50%; }
+  .bar span { margin: 0 auto; }
+  .screen { position: relative; padding: clamp(18px, 3vw, 32px); min-height: 520px; cursor: text; isolation: isolate; }
+  .screen > :not(.wm) { position: relative; }
+
+  .wm {
+    position: absolute; z-index: -1; right: -2%; top: 50%;
+    transform: translateY(-50%) rotate(-6deg);
+    font-family: 'Zhi Mang Xing', cursive; font-size: clamp(130px, 24vw, 280px); line-height: 1; white-space: nowrap;
+    color: var(--green); opacity: .07; pointer-events: none; user-select: none;
+    transition: opacity 1.2s ease;
+  }
+  .jie { display: inline-block; white-space: nowrap; }
+  .jie > span { display: inline-block; transform-origin: left center; }
+  .jie > span:first-child { transform: scaleX(.52); margin-right: -.48em; }
+  .jie > span:last-child { transform: scaleX(.56); margin-right: -.44em; margin-left: -.04em; }
+  :global(.booting) .wm { opacity: 0; }
+  .log { color: var(--dim); font-size: 13px; white-space: pre-wrap; }
+  .log :global(.ok) { color: var(--green); }
+  .log :global(.warn) { color: var(--amber); }
+
+  .name {
+    font-size: clamp(44px, 9vw, 112px); font-weight: 800; line-height: .95; letter-spacing: -.03em;
+    color: var(--green); margin: 28px 0 16px;
+    text-shadow: 0 0 18px rgba(57, 255, 136, .45), 0 0 60px rgba(57, 255, 136, .2);
+  }
+  .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .role { font-size: clamp(15px, 2vw, 20px); min-height: 1.7em; }
+  .role :global(.k), .role .k { color: var(--amber); }
+
+  .meta { display: flex; flex-wrap: wrap; gap: 10px; margin: 22px 0 26px; font-size: 13px; }
+  .meta span { border: 1px solid var(--line); padding: 4px 10px; border-radius: 4px; }
+  .meta b { color: var(--green); font-weight: 400; }
+
+  .out { white-space: pre-wrap; font-size: 14px; }
+  .out :global(.cmd)::before { content: "jason@wang:~$ "; color: var(--green); }
+  .out :global(.res) { color: var(--soft); margin-bottom: 10px; }
+  .out :global(em) { color: var(--amber); font-style: normal; }
+  .prompt { display: flex; align-items: center; font-size: 14px; }
+  .prompt label { color: var(--green); white-space: nowrap; }
+  .prompt input { flex: 1; min-width: 0; background: transparent; border: 0; outline: 0; color: var(--fg); font: inherit; caret-color: var(--green); margin-left: 8px; }
+  .hint { color: var(--dim); font-size: 12px; margin-top: 6px; }
+  .hint code { color: var(--amber); }
+
+  /* 开机动画：JS 加 .booting 时先隐藏，结束后显示；无 JS 时直接可见 */
+  :global(.booting) .name { opacity: 0; }
+  :global(.booting) .reveal { opacity: 0; }
+  .name, .reveal { transition: opacity .5s; }
+  :global(.booted) .name { animation: glitch 2.8s infinite steps(1); }
+  @keyframes glitch {
+    0%, 92%, 100% { transform: none; }
+    93% { transform: translate(2px, -1px); text-shadow: -3px 0 var(--red), 3px 0 var(--cyan); }
+    95% { transform: translate(-2px, 1px); text-shadow: 3px 0 var(--red), -3px 0 var(--cyan); }
+  }
+
+  @media (max-width: 640px) { .screen { min-height: 460px; } }
+</style>
+
+<script>
+  type Profile = {
+    lang: string;
+    langs: string[];
+    paths: { projects: string; blog: string; contact: string; home: Record<string, string> };
+    t: Record<string, string>;
+    roles: string[];
+    bio: string[];
+    email: string;
+    links: { label: string; href: string }[];
+    skills: [string, number][];
+  };
+
+  const screen = document.getElementById('screen')!;
+  const p: Profile = JSON.parse(screen.dataset.profile!);
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const sleep = (ms: number) => new Promise((r) => setTimeout(r, reduce ? 0 : ms));
+  const $ = (id: string) => document.getElementById(id)!;
+  const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
+
+  const bootLines: [string, string][] = [
+    ['[  0.000] booting portfolio kernel v2026.10 ...', ''],
+    ['[  0.112] mounting /projects ............ ', 'ok'],
+    ['[  0.204] loading modules: ml nlp analytics', 'ok'],
+    ['[  0.318] warning: coffee level low', 'warn'],
+    ['[  0.420] welcome, visitor.', 'ok'],
+  ];
+
+  async function boot() {
+    document.body.classList.add('booting');
+    const log = $('log');
+    for (const [text, cls] of bootLines) {
+      const line = document.createElement('div');
+      log.appendChild(line);
+      if (reduce) line.textContent = text;
+      else for (const ch of text) { line.textContent += ch; await sleep(6); }
+      if (cls) {
+        const s = document.createElement('span');
+        s.className = cls;
+        s.textContent = cls === 'ok' ? ' [OK]' : ' [WARN]';
+        line.appendChild(s);
+      }
+      await sleep(90);
+    }
+    await sleep(200);
+    document.body.classList.replace('booting', 'booted');
+    if (!reduce) rotateRole();
+  }
+
+  async function rotateRole() {
+    const el = $('role');
+    const render = (s: string) => (el.innerHTML = `<span class="k">&gt;</span> currently ${esc(s)}<span class="caret"></span>`);
+    for (let i = 0; ; i++) {
+      const word = p.roles[i % p.roles.length];
+      for (let n = 0; n <= word.length; n++) { render(word.slice(0, n)); await sleep(45); }
+      await sleep(1600);
+      for (let n = word.length; n >= 0; n--) { render(word.slice(0, n)); await sleep(20); }
+    }
+  }
+
+  const t = (key: string, vars: Record<string, string> = {}) => p.t[key].replace(/\{(\w+)\}/g, (_, k) => vars[k] ?? '');
+  const go = (href: string, msg: string) => { setTimeout(() => (location.href = href), 400); return msg; };
+  const mail = `<a href="mailto:${p.email}">${esc(p.email)}</a>`;
+  const bar = (v: number) => '█'.repeat(v) + '░'.repeat(10 - v);
+  const commands: Record<string, (arg: string) => string> = {
+    help: () => t('term.help') + ' ' + ['whoami', 'ls', 'projects', 'blog', 'skills', 'contact', 'links', 'lang', 'clear'].map((c) => `<em>${c}</em>`).join('  '),
+    whoami: () => p.bio.map(esc).join('\n'),
+    ls: () => 'about.md  projects/  blog/  contact.txt',
+    projects: () => go(p.paths.projects, t('term.opening', { path: '~/projects' })),
+    blog: () => go(p.paths.blog, t('term.opening', { path: '~/blog' })),
+    lang: (arg) => (p.langs.includes(arg) && arg !== p.lang ? go(p.paths.home[arg], t('term.lang')) : t('term.langUsage')),
+    skills: () => p.skills.map(([k, v]) => `${k.padEnd(14)} ${bar(v)}`).join('\n'),
+    contact: () => go(p.paths.contact, t('term.opening', { path: '~/contact' })),
+    links: () => [`email     <em>${esc(p.email)}</em>`, ...p.links.map((l) => `${l.label.padEnd(9)} <a href="${l.href}" target="_blank" rel="noopener">${esc(l.href.replace(/^https?:\/\//, ''))}</a>`)].join('\n'),
+    'sudo hire-me': () => `[sudo] password for recruiter: ********\n${t('term.hire', { email: mail })}`,
+  };
+
+  const history: string[] = [];
+  let hi = 0;
+  const input = $('cmd') as HTMLInputElement;
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+      if (!history.length) return;
+      e.preventDefault();
+      hi = Math.max(0, Math.min(history.length, hi + (e.key === 'ArrowUp' ? -1 : 1)));
+      input.value = history[hi] ?? '';
+      return;
+    }
+    if (e.key !== 'Enter') return;
+    const raw = input.value.trim().toLowerCase();
+    input.value = '';
+    if (!raw) return;
+    history.push(raw);
+    hi = history.length;
+    const out = $('out');
+    if (raw === 'clear') { out.innerHTML = ''; return; }
+    const [name, ...args] = raw.split(/\s+/);
+    const fn = commands[raw] ?? commands[name];
+    const cmd = document.createElement('div');
+    cmd.className = 'cmd';
+    cmd.textContent = raw;
+    const res = document.createElement('div');
+    res.className = 'res';
+    res.innerHTML = fn ? fn(args.join(' ')) : `zsh: command not found: ${esc(name)}  ${t('term.notFound')}`;
+    out.append(cmd, res);
+  });
+  screen.addEventListener('click', (e) => {
+    if (!(e.target as HTMLElement).closest('a')) input.focus({ preventScroll: true });
+  });
+
+  boot();
+</script>

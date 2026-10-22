@@ -1,0 +1,119 @@
+---
+import Base from '../layouts/Base.astro';
+import TerminalHero from '../components/TerminalHero.astro';
+import ProjectCard from '../components/ProjectCard.astro';
+import { getProfile } from '../data/profile';
+import { byDateDesc, getLocalized } from '../i18n/content';
+import { localizePath, useTranslations, type Lang } from '../i18n/ui';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+const profile = getProfile(lang);
+
+const projects = (await getLocalized('projects', lang))
+  .filter(({ entry }) => entry.data.featured)
+  .sort(byDateDesc)
+  .slice(0, 6);
+const posts = (await getLocalized('blog', lang))
+  .filter(({ entry }) => !entry.data.draft)
+  .sort(byDateDesc)
+  .slice(0, 3);
+const hasPlaceholder = projects.some(({ entry }) => entry.data.placeholder);
+---
+
+<Base lang={lang}>
+  <!-- 水印用的志莽行书，只下载 王 辰 吉 力 四个字 -->
+  <link slot="head" href="https://fonts.googleapis.com/css2?family=Zhi+Mang+Xing&display=block&text=%E7%8E%8B%E8%BE%B0%E5%90%89%E5%8A%9B" rel="stylesheet" />
+  <TerminalHero lang={lang} />
+
+  <section id="about">
+    <h2 class="prompt-title"><b>$</b> cat about.md</h2>
+    <div class="about">
+      <img src="/avatar.jpg" alt={profile.name} width="160" height="160" />
+      <div>
+        <p class="who">{profile.aboutName}</p>
+        {profile.bio.map((line) => <p>{line}</p>)}
+        <p class="contact">{t('about.contact')} → <a href={`mailto:${profile.email}`}>{profile.email}</a></p>
+      </div>
+    </div>
+  </section>
+
+  <section id="projects">
+    <h2 class="prompt-title">
+      <b>$</b> ls -la ~/projects {hasPlaceholder && <span class="c">{t('projects.placeholder')}</span>}
+    </h2>
+    <div class="cards">
+      {projects.map(({ entry, slug }) => <ProjectCard project={entry} slug={slug} lang={lang} />)}
+    </div>
+    <p class="more"><a href={localizePath('/projects/', lang)}>{t('projects.more')}</a></p>
+  </section>
+
+  <section id="skills">
+    <h2 class="prompt-title"><b>$</b> cat skills.json | jq</h2>
+    <div class="skills">
+      {profile.skills.map(([name, level]) => (
+        <div class="skill">
+          <span>"{name}"</span>
+          <span class="fill" aria-label={`${level}/10`}>
+            {'█'.repeat(level * 2)}<span>{'█'.repeat(20 - level * 2)}</span>
+          </span>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  {posts.length > 0 && (
+    <section id="blog">
+      <h2 class="prompt-title"><b>$</b> tail -n 3 ~/blog</h2>
+      <ul class="posts">
+        {posts.map(({ entry, slug }) => (
+          <li>
+            <time>{entry.data.date.toISOString().slice(0, 10)}</time>
+            <a href={localizePath(`/blog/${slug}/`, lang)}>{entry.data.title}</a>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )}
+  <section id="contact" class="contact-teaser">
+    <h2 class="prompt-title"><b>$</b> ping jason</h2>
+    <p>{t('contact.teaser')}</p>
+    <p class="links">
+      <a href={`mailto:${profile.email}`}>{profile.email}</a>
+      <a href={localizePath('/contact/', lang)}>{t('contact.more')}</a>
+    </p>
+  </section>
+</Base>
+
+<style>
+  .about { display: grid; grid-template-columns: 160px 1fr; gap: 32px; align-items: start; }
+  .about img { width: 160px; height: 160px; object-fit: cover; border: 1px solid var(--line); border-radius: 6px; filter: grayscale(1) contrast(1.1); }
+  .about p { color: var(--soft); }
+  .about p + p { margin-top: 6px; }
+  .about .contact { margin-top: 16px; }
+  .about .who { color: var(--green); font-weight: 600; margin-bottom: 10px; }
+
+  .contact-teaser p { color: var(--soft); }
+  .contact-teaser .links { display: flex; flex-wrap: wrap; gap: 8px 24px; margin-top: 12px; }
+
+  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr)); gap: 18px; }
+  .more { margin-top: 20px; font-size: 14px; }
+
+  .skills { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr)); gap: 10px 40px; font-size: 14px; }
+  .skill { display: grid; grid-template-columns: 140px 1fr; gap: 12px; align-items: center; }
+  .fill { color: var(--green); letter-spacing: -1px; overflow: hidden; white-space: nowrap; }
+  .fill span { color: var(--line); }
+
+  .posts { list-style: none; font-size: 14px; }
+  .posts li { display: flex; gap: 20px; padding: 10px 0; border-bottom: 1px dashed var(--line); }
+  .posts time { color: var(--dim); }
+
+  @media (max-width: 560px) {
+    .about { grid-template-columns: 1fr; }
+    .skill { grid-template-columns: 110px 1fr; }
+  }
+</style>

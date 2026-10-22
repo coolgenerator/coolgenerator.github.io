@@ -1,0 +1,11 @@
+---
+import ProjectDetail from '../../views/ProjectDetail.astro';
+import { getLocalized } from '../../i18n/content';
+
+export async function getStaticPaths() {
+  const items = await getLocalized('projects', 'en');
+  return items.map(({ slug, entry, fallback }) => ({ params: { slug }, props: { project: entry, fallback } }));
+}
+---
+
+<ProjectDetail lang="en" {...Astro.props} />

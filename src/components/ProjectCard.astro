@@ -1,0 +1,51 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { localizePath, useTranslations, type Lang } from '../i18n/ui';
+
+interface Props {
+  project: CollectionEntry<'projects'>;
+  slug: string;
+  lang: Lang;
+}
+
+const { project, slug, lang } = Astro.props;
+const { title, summary, date, category, tags, github, demo, ascii } = project.data;
+const month = date.toISOString().slice(0, 7);
+const href = localizePath(`/projects/${slug}/`, lang);
+const t = useTranslations(lang);
+---
+
+<article class="card">
+  <a class="cover" href={href} aria-label={`${t('projects.view')} ${title}`}>
+    {ascii ? <pre>{ascii}</pre> : <span>no preview</span>}
+  </a>
+  <div class="perm">drwxr-xr-x  {month}  {category}/</div>
+  <h3><a href={href}>{title}</a></h3>
+  <p>{summary}</p>
+  <div class="tags">{tags.map((tag) => <span>{tag}</span>)}</div>
+  <div class="links">
+    {github && <a href={github} target="_blank" rel="noopener">github ↗</a>}
+    {demo && <a href={demo} target="_blank" rel="noopener">demo ↗</a>}
+  </div>
+</article>
+
+<style>
+  .card {
+    border: 1px solid var(--line); border-radius: 8px; padding: 18px;
+    background: rgba(11, 17, 16, .7);
+    transition: border-color .2s, transform .2s, box-shadow .2s;
+  }
+  .card:hover { border-color: var(--green); transform: translateY(-3px); box-shadow: 0 0 30px -8px rgba(57, 255, 136, .4); }
+  .cover {
+    display: grid; place-items: center; height: 120px; margin-bottom: 14px;
+    border: 1px solid var(--line); border-radius: 4px; overflow: hidden; color: var(--dim); font-size: 12px;
+    background: repeating-linear-gradient(90deg, transparent 0 22px, rgba(57, 255, 136, .06) 22px 23px), linear-gradient(135deg, #0e2418, #06080a);
+  }
+  .cover:hover { background-color: transparent; }
+  .cover pre { color: var(--green); opacity: .75; font-size: 11px; line-height: 1.25; }
+  .perm { color: var(--dim); font-size: 12px; }
+  h3 { font-size: 18px; margin: 8px 0 6px; }
+  h3 a::before { content: "./"; color: var(--dim); }
+  p { font-size: 13.5px; color: var(--soft); margin-bottom: 14px; }
+  .links { margin-top: 14px; font-size: 13px; display: flex; gap: 14px; }
+</style>

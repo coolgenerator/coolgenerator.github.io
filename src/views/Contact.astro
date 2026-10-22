@@ -1,0 +1,73 @@
+---
+import Base from '../layouts/Base.astro';
+import { getProfile } from '../data/profile';
+import { useTranslations, type Lang } from '../i18n/ui';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+const profile = getProfile(lang);
+const rows = [
+  { k: 'email', v: profile.email, href: `mailto:${profile.email}`, copy: true },
+  ...profile.links.map((l) => ({ k: l.label, v: l.href.replace(/^https?:\/\/(www\.)?/, ''), href: l.href, copy: false })),
+];
+---
+
+<Base lang={lang} title="Contact" description={t('contact.description')}>
+  <header class="page-head">
+    <h1>~/contact</h1>
+    <p>{t('contact.lead')}</p>
+  </header>
+
+  <section>
+    <h2 class="prompt-title"><b>$</b> cat contact.txt</h2>
+    <dl class="file">
+      <div class="row"><dt>name</dt><dd>{profile.aboutName}</dd></div>
+      {profile.status && <div class="row"><dt>{t('contact.status')}</dt><dd class="status">{profile.status}</dd></div>}
+      <div class="row"><dt>location</dt><dd>{profile.location}</dd></div>
+      {rows.map((r) => (
+        <div class="row">
+          <dt>{r.k}</dt>
+          <dd>
+            <a href={r.href} target={r.copy ? undefined : '_blank'} rel={r.copy ? undefined : 'noopener'}>{r.v}</a>
+            {r.copy && (
+              <button type="button" class="copy" data-copy={r.v} data-done={t('contact.copied')}>[{t('contact.copy')}]</button>
+            )}
+          </dd>
+        </div>
+      ))}
+    </dl>
+  </section>
+</Base>
+
+<style>
+  section { padding-top: 40px; }
+  .file { border: 1px solid var(--line); border-radius: 8px; padding: 8px 20px; background: rgba(11, 17, 16, .7); max-width: 720px; }
+  .row { display: grid; grid-template-columns: 120px 1fr; gap: 16px; padding: 12px 0; border-bottom: 1px dashed var(--line); }
+  .row:last-child { border-bottom: 0; }
+  dt { color: var(--dim); }
+  dd { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; word-break: break-all; }
+  .status { color: var(--amber); }
+  .copy { background: none; border: 0; color: var(--amber); font: inherit; font-size: 13px; cursor: pointer; }
+  .copy:hover { color: var(--green); }
+  @media (max-width: 480px) { .row { grid-template-columns: 1fr; gap: 2px; } }
+</style>
+
+<script>
+  document.querySelectorAll<HTMLButtonElement>('button.copy').forEach((btn) => {
+    const label = btn.textContent;
+    btn.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(btn.dataset.copy!);
+        btn.textContent = `[${btn.dataset.done}]`;
+        setTimeout(() => (btn.textContent = label), 1600);
+      } catch {
+        // 剪贴板不可用时退回到选中文字，方便手动复制
+        getSelection()?.selectAllChildren(btn.previousElementSibling!);
+      }
+    });
+  });
+</script>
