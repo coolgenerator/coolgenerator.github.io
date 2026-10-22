@@ -3,7 +3,7 @@ import Base from '../layouts/Base.astro';
 import TerminalHero from '../components/TerminalHero.astro';
 import ProjectCard from '../components/ProjectCard.astro';
 import { getProfile } from '../data/profile';
-import { byDateDesc, getLocalized } from '../i18n/content';
+import { byDateDesc, getLocalized, isVisible } from '../i18n/content';
 import { localizePath, useTranslations, type Lang } from '../i18n/ui';
 
 interface Props {
@@ -19,7 +19,7 @@ const projects = (await getLocalized('projects', lang))
   .sort(byDateDesc)
   .slice(0, 6);
 const posts = (await getLocalized('blog', lang))
-  .filter(({ entry }) => !entry.data.draft)
+  .filter(isVisible)
   .sort(byDateDesc)
   .slice(0, 3);
 const hasPlaceholder = projects.some(({ entry }) => entry.data.placeholder);

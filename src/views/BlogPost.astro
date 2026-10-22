@@ -15,10 +15,11 @@ const { Content } = await render(post);
 const { title, description, date, tags } = post.data;
 ---
 
-<Base lang={lang} title={title} description={description}>
+<Base lang={lang} title={title} description={description} reading>
   <header class="page-head">
     <p class="crumb"><a href={localizePath('/blog/', lang)}>~/blog</a>/</p>
     <h1>{title}</h1>
+    {description && <p class="lead">{description}</p>}
     <div class="row">
       <time>{date.toISOString().slice(0, 10)}</time>
       <div class="tags">{tags.map((tag) => <span>{tag}</span>)}</div>

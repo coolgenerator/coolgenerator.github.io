@@ -15,11 +15,11 @@ const { Content } = await render(project);
 const { title, summary, date, category, tags, github, demo } = project.data;
 ---
 
-<Base lang={lang} title={title} description={summary}>
+<Base lang={lang} title={title} description={summary} reading>
   <header class="page-head">
     <p class="crumb"><a href={localizePath('/projects/', lang)}>~/projects</a>/{category}/</p>
     <h1>./{title}</h1>
-    <p>{summary}</p>
+    <p class="lead">{summary}</p>
     <div class="row">
       <span>{date.toISOString().slice(0, 7)}</span>
       <div class="tags">{tags.map((tag) => <span>{tag}</span>)}</div>

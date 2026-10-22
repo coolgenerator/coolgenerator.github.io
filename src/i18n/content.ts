@@ -32,3 +32,6 @@ export async function getLocalized<C extends Name>(collection: C, lang: Lang): P
 
 export const byDateDesc = (a: { entry: { data: { date: Date } } }, b: { entry: { data: { date: Date } } }) =>
   b.entry.data.date.valueOf() - a.entry.data.date.valueOf();
+
+/** 草稿只在本地开发服务器（astro dev）显示，正式构建时排除 */
+export const isVisible = ({ entry }: { entry: { data: { draft?: boolean } } }) => !entry.data.draft || import.meta.env.DEV;

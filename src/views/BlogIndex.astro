@@ -1,6 +1,6 @@
 ---
 import Base from '../layouts/Base.astro';
-import { byDateDesc, getLocalized } from '../i18n/content';
+import { byDateDesc, getLocalized, isVisible } from '../i18n/content';
 import { localizePath, useTranslations, type Lang } from '../i18n/ui';
 
 interface Props {
@@ -9,13 +9,13 @@ interface Props {
 
 const { lang } = Astro.props;
 const t = useTranslations(lang);
-const posts = (await getLocalized('blog', lang)).filter(({ entry }) => !entry.data.draft).sort(byDateDesc);
+const posts = (await getLocalized('blog', lang)).filter(isVisible).sort(byDateDesc);
 
 // 中文按 400 字/分钟，英文按 200 词/分钟估算
 function readingMinutes(body = '') {
   const text = body.replace(/```[\s\S]*?```/g, ' ');
-  const cjk = (text.match(/[㐀-鿿]/g) ?? []).length;
-  const words = (text.replace(/[㐀-鿿]/g, ' ').match(/\S+/g) ?? []).length;
+  const cjk = (text.match(/[\u3400-\u9fff]/g) ?? []).length;
+  const words = (text.replace(/[\u3400-\u9fff]/g, ' ').match(/\S+/g) ?? []).length;
   return Math.max(1, Math.round(cjk / 400 + words / 200));
 }
 
@@ -28,6 +28,7 @@ const rows = posts.map(({ entry, slug, fallback }) => ({
   description: entry.data.description,
   tags: entry.data.tags,
   fallback,
+  draft: entry.data.draft,
 }));
 ---
 
@@ -51,7 +52,7 @@ const rows = posts.map(({ entry, slug, fallback }) => ({
                 <span class="perm" aria-hidden="true">-rw-r--r--</span>
                 <span class="size">{t('blog.minutes', { n: r.minutes })}</span>
                 <time datetime={r.date}>{r.date}</time>
-                <span class="file">{r.file}{r.fallback && <span class="lang"> ({lang === 'zh' ? 'en' : 'zh'})</span>}</span>
+                <span class="file">{r.file}{r.draft && <span class="draft"> [draft]</span>}{r.fallback && <span class="lang"> ({lang === 'zh' ? 'en' : 'zh'})</span>}</span>
                 <span class="info">
                   <span class="title"><span class="hash" aria-hidden="true"># </span>{r.title}</span>
                   {r.description && <span class="desc">{r.description}</span>}
@@ -76,12 +77,13 @@ const rows = posts.map(({ entry, slug, fallback }) => ({
     padding: 14px 12px; margin: 0 -12px; border-radius: 4px; color: var(--fg);
     border-left: 2px solid transparent; transition: background .15s, border-color .15s;
   }
-  .ls a:hover { background: rgba(57, 255, 136, .06); color: var(--fg); border-left-color: var(--green); }
+  .ls a:hover { background: var(--hover); color: var(--fg); border-left-color: var(--green); }
   .ls a:hover .file { text-decoration: underline; }
   .perm, .size { color: var(--dim); }
   time { color: var(--soft); }
   .file { color: var(--green); }
   .lang { color: var(--dim); }
+  .draft { color: var(--amber); }
   .info { grid-column: 4; display: flex; flex-direction: column; gap: 4px; }
   .title { color: var(--fg); font-weight: 600; }
   .hash { color: var(--dim); font-weight: 400; }

@@ -7,9 +7,11 @@ interface Props {
   lang: Lang;
   title?: string;
   description?: string;
+  /** 长文页面：去掉扫描线等装饰，正文用阅读排版 */
+  reading?: boolean;
 }
 
-const { lang, title, description } = Astro.props;
+const { lang, title, description, reading = false } = Astro.props;
 const t = useTranslations(lang);
 const profile = getProfile(lang);
 const fullTitle = title ? `${title} | ${profile.displayName}` : `${profile.displayName} | ${profile.title}`;
@@ -26,7 +28,15 @@ const ogImage = new URL('/icon-512.png', Astro.site);
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{fullTitle}</title>
     <meta name="description" content={desc} />
-    <meta name="theme-color" content="#06080a" />
+    <meta name="theme-color" content="#06080a" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#f6f5ef" media="(prefers-color-scheme: light)" />
+    <!-- 在首次绘制前应用手动选择的主题，避免闪烁；未选择时由 CSS 跟随系统 -->
+    <script is:inline>
+      try {
+        const t = localStorage.getItem('theme');
+        if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t;
+      } catch {}
+    </script>
     <link rel="canonical" href={canonical} />
     {langs.map((l) => <link rel="alternate" hreflang={l === 'zh' ? 'zh-CN' : l} href={new URL(localizePath(basePath, l), Astro.site)} />)}
     <link rel="alternate" hreflang="x-default" href={new URL(basePath, Astro.site)} />
@@ -42,7 +52,7 @@ const ogImage = new URL('/icon-512.png', Astro.site);
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;800&display=swap" rel="stylesheet" />
     <slot name="head" />
   </head>
-  <body>
+  <body class:list={{ reading }}>
     <div class="grid-bg" aria-hidden="true"></div>
 
     <nav class="topbar">
@@ -54,6 +64,11 @@ const ogImage = new URL('/icon-512.png', Astro.site);
       </ul>
       <div class="right">
         <span class="status">online · {profile.location}</span>
+        <button class="theme" id="theme-toggle" type="button" data-mode="auto" aria-label="Theme: auto" title="Theme: auto">
+          <svg data-for="auto" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="1.5" /><path d="M8 2a6 6 0 0 1 0 12z" fill="currentColor" /></svg>
+          <svg data-for="light" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="3" fill="currentColor" /><path d="M8 1v2M8 13v2M1 8h2M13 8h2M3 3l1.4 1.4M11.6 11.6 13 13M3 13l1.4-1.4M11.6 4.4 13 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" /></svg>
+          <svg data-for="dark" viewBox="0 0 16 16" aria-hidden="true"><path d="M13.5 10.2A6 6 0 0 1 5.8 2.5a6 6 0 1 0 7.7 7.7z" fill="currentColor" /></svg>
+        </button>
         <span class="lang" aria-label="Language">
           {langs.map((l) =>
             l === lang ? (
@@ -80,12 +95,40 @@ const ogImage = new URL('/icon-512.png', Astro.site);
   </body>
 </html>
 
+<script>
+  // 三种状态循环：跟随系统 → 浅色 → 深色
+  const modes = ['auto', 'light', 'dark'] as const;
+  type Mode = (typeof modes)[number];
+  const btn = document.getElementById('theme-toggle')!;
+  const read = (): Mode => {
+    try {
+      const t = localStorage.getItem('theme');
+      return t === 'light' || t === 'dark' ? t : 'auto';
+    } catch {
+      return 'auto';
+    }
+  };
+  const apply = (m: Mode) => {
+    if (m === 'auto') delete document.documentElement.dataset.theme;
+    else document.documentElement.dataset.theme = m;
+    try {
+      if (m === 'auto') localStorage.removeItem('theme');
+      else localStorage.setItem('theme', m);
+    } catch {}
+    btn.dataset.mode = m;
+    btn.setAttribute('aria-label', `Theme: ${m}`);
+    btn.title = `Theme: ${m}`;
+  };
+  apply(read());
+  btn.addEventListener('click', () => apply(modes[(modes.indexOf(read()) + 1) % modes.length]));
+</script>
+
 <style>
   .topbar {
     position: sticky; top: 0; z-index: 40;
     display: flex; justify-content: space-between; align-items: center; gap: 16px;
     padding: 14px var(--gutter);
-    background: rgba(6, 8, 10, .8); backdrop-filter: blur(8px);
+    background: var(--topbar-bg); backdrop-filter: blur(8px);
     border-bottom: 1px solid var(--line); font-size: 13px;
   }
   .who { color: var(--green); }
@@ -97,6 +140,15 @@ const ogImage = new URL('/icon-512.png', Astro.site);
   .lang { display: flex; border: 1px solid var(--line); border-radius: 4px; overflow: hidden; }
   .lang > * { padding: 1px 8px; }
   .lang b { background: var(--green); color: var(--bg); font-weight: 400; }
+  .theme {
+    width: 26px; height: 22px; border: 1px solid var(--line); border-radius: 4px;
+    background: none; color: var(--fg); cursor: pointer; display: grid; place-items: center;
+  }
+  .theme svg { width: 13px; height: 13px; display: none; }
+  .theme[data-mode="auto"] svg[data-for="auto"],
+  .theme[data-mode="light"] svg[data-for="light"],
+  .theme[data-mode="dark"] svg[data-for="dark"] { display: block; }
+  .theme:hover { border-color: var(--green); color: var(--green); }
 
   footer {
     border-top: 1px solid var(--line); margin-top: 96px;

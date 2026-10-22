@@ -60,8 +60,8 @@ const [first, ...rest] = profile.name.toUpperCase().split(' ');
   .window {
     margin-top: clamp(32px, 7vh, 72px);
     border: 1px solid var(--line); border-radius: 10px; overflow: hidden;
-    background: linear-gradient(180deg, rgba(11, 17, 16, .92), rgba(6, 8, 10, .92));
-    box-shadow: 0 0 0 1px rgba(57, 255, 136, .04), 0 30px 80px -20px rgba(57, 255, 136, .18);
+    background: var(--window-bg);
+    box-shadow: var(--window-shadow);
   }
   .bar { display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-bottom: 1px solid var(--line); font-size: 12px; color: var(--dim); }
   .bar i { width: 11px; height: 11px; border-radius: 50%; }
@@ -73,7 +73,7 @@ const [first, ...rest] = profile.name.toUpperCase().split(' ');
     position: absolute; z-index: -1; right: -2%; top: 50%;
     transform: translateY(-50%) rotate(-6deg);
     font-family: 'Zhi Mang Xing', cursive; font-size: clamp(130px, 24vw, 280px); line-height: 1; white-space: nowrap;
-    color: var(--green); opacity: .07; pointer-events: none; user-select: none;
+    color: var(--green); opacity: var(--wm-opacity); pointer-events: none; user-select: none;
     transition: opacity 1.2s ease;
   }
   .jie { display: inline-block; white-space: nowrap; }
@@ -88,7 +88,7 @@ const [first, ...rest] = profile.name.toUpperCase().split(' ');
   .name {
     font-size: clamp(44px, 9vw, 112px); font-weight: 800; line-height: .95; letter-spacing: -.03em;
     color: var(--green); margin: 28px 0 16px;
-    text-shadow: 0 0 18px rgba(57, 255, 136, .45), 0 0 60px rgba(57, 255, 136, .2);
+    text-shadow: var(--glow);
   }
   .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
   .role { font-size: clamp(15px, 2vw, 20px); min-height: 1.7em; }

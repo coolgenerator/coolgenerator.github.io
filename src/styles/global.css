@@ -1,3 +1,4 @@
+/* 深色是默认主题；浅色在系统偏好为浅色（且未手动选深色）或手动选浅色时生效 */
 :root {
   --bg: #06080a;
   --panel: #0b1110;
@@ -9,9 +10,52 @@
   --red: #ff5f56;
   --cyan: #4cc9ff;
   --line: #14301f;
+  /* 长文正文用中性色，不带绿 */
+  --text: #d2dbd5;
+  --text-strong: #eef4f0;
+
+  --panel-a: rgba(11, 17, 16, .72);
+  --topbar-bg: rgba(6, 8, 10, .8);
+  --hover: rgba(57, 255, 136, .06);
+  --glow: 0 0 18px rgba(57, 255, 136, .45), 0 0 60px rgba(57, 255, 136, .2);
+  --glow-sm: 0 0 18px rgba(57, 255, 136, .35);
+  --card-shadow: 0 0 30px -8px rgba(57, 255, 136, .4);
+  --window-bg: linear-gradient(180deg, rgba(11, 17, 16, .92), rgba(6, 8, 10, .92));
+  --window-shadow: 0 0 0 1px rgba(57, 255, 136, .04), 0 30px 80px -20px rgba(57, 255, 136, .18);
+  --cover-bg: repeating-linear-gradient(90deg, transparent 0 22px, rgba(57, 255, 136, .06) 22px 23px), linear-gradient(135deg, #0e2418, #06080a);
+  --scan: rgba(0, 0, 0, .22);
+  --vignette: rgba(0, 0, 0, .65);
+  --img-filter: brightness(.82);
+  --wm-opacity: .07;
+
   --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif;
   --gutter: clamp(16px, 4vw, 48px);
   color-scheme: dark;
+}
+
+/* 浅色：「纸面终端」。两处选择器内容相同，分别对应跟随系统和手动选择 */
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg: #f6f5ef; --panel: #ffffff; --fg: #18261d; --soft: #3d5245; --green: #0b7a43; --dim: #6b7b70;
+    --amber: #a2550b; --red: #d1432f; --cyan: #0a6fa8; --line: #dcdfd4; --text: #2a302c; --text-strong: #101410;
+    --panel-a: rgba(255, 255, 255, .78); --topbar-bg: rgba(246, 245, 239, .86); --hover: rgba(11, 122, 67, .07);
+    --glow: none; --glow-sm: none; --card-shadow: 0 10px 30px -14px rgba(24, 38, 29, .3);
+    --window-bg: linear-gradient(180deg, #ffffff, #fbfaf5); --window-shadow: 0 0 0 1px rgba(24, 38, 29, .03), 0 30px 80px -32px rgba(24, 38, 29, .3);
+    --cover-bg: repeating-linear-gradient(90deg, transparent 0 22px, rgba(11, 122, 67, .07) 22px 23px), linear-gradient(135deg, #edf3ec, #faf9f4);
+    --scan: transparent; --vignette: transparent; --img-filter: none; --wm-opacity: .1;
+    color-scheme: light;
+  }
+}
+:root[data-theme="light"] {
+  --bg: #f6f5ef; --panel: #ffffff; --fg: #18261d; --soft: #3d5245; --green: #0b7a43; --dim: #6b7b70;
+  --amber: #a2550b; --red: #d1432f; --cyan: #0a6fa8; --line: #dcdfd4; --text: #2a302c; --text-strong: #101410;
+  --panel-a: rgba(255, 255, 255, .78); --topbar-bg: rgba(246, 245, 239, .86); --hover: rgba(11, 122, 67, .07);
+  --glow: none; --glow-sm: none; --card-shadow: 0 10px 30px -14px rgba(24, 38, 29, .3);
+  --window-bg: linear-gradient(180deg, #ffffff, #fbfaf5); --window-shadow: 0 0 0 1px rgba(24, 38, 29, .03), 0 30px 80px -32px rgba(24, 38, 29, .3);
+  --cover-bg: repeating-linear-gradient(90deg, transparent 0 22px, rgba(11, 122, 67, .07) 22px 23px), linear-gradient(135deg, #edf3ec, #faf9f4);
+  --scan: transparent; --vignette: transparent; --img-filter: none; --wm-opacity: .1;
+  color-scheme: light;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -32,14 +76,14 @@ a { color: var(--green); text-decoration: none; }
 a:hover { background: var(--green); color: var(--bg); }
 :focus-visible { outline: 1px dashed var(--amber); outline-offset: 3px; }
 
-/* CRT 扫描线 + 暗角 */
+/* CRT 扫描线 + 暗角；阅读页（body.reading）不显示 */
 body::before {
   content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 50;
-  background: repeating-linear-gradient(0deg, rgba(0,0,0,.22) 0 1px, transparent 1px 3px);
+  background: repeating-linear-gradient(0deg, var(--scan) 0 1px, transparent 1px 3px);
 }
 body::after {
   content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 49;
-  background: radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,.65));
+  background: radial-gradient(ellipse at center, transparent 55%, var(--vignette));
 }
 .grid-bg {
   position: fixed; inset: 0; z-index: -1; opacity: .4;
@@ -48,6 +92,7 @@ body::after {
   -webkit-mask-image: radial-gradient(ellipse at 50% 25%, #000 15%, transparent 70%);
           mask-image: radial-gradient(ellipse at 50% 25%, #000 15%, transparent 70%);
 }
+body.reading::before, body.reading::after, body.reading .grid-bg { display: none; }
 
 main { width: 100%; max-width: 1080px; margin: 0 auto; padding: 0 var(--gutter); flex: 1; }
 
@@ -57,8 +102,9 @@ section { padding: 96px 0 24px; scroll-margin-top: 56px; }
 .prompt-title .c { color: var(--dim); }
 
 .page-head { padding: 64px 0 8px; }
-.page-head h1 { color: var(--green); font-size: clamp(28px, 5vw, 44px); text-shadow: 0 0 18px rgba(57,255,136,.35); }
+.page-head h1 { color: var(--green); font-size: clamp(28px, 5vw, 44px); line-height: 1.2; text-shadow: var(--glow-sm); }
 .page-head p { color: var(--dim); margin-top: 6px; }
+.page-head .lead { font-family: var(--sans); font-size: 18px; line-height: 1.6; color: var(--soft); max-width: 62ch; margin-top: 12px; }
 
 .tags { display: flex; flex-wrap: wrap; gap: 6px; font-size: 12px; }
 .tags span { color: var(--amber); }
@@ -68,24 +114,38 @@ section { padding: 96px 0 24px; scroll-margin-top: 56px; }
 .caret { display: inline-block; width: .6em; height: 1.1em; background: var(--green); vertical-align: -3px; animation: blink 1s steps(1) infinite; }
 @keyframes blink { 50% { opacity: 0; } }
 
-/* 文章正文 */
-.prose { max-width: 720px; color: var(--soft); }
-.prose > * + * { margin-top: 1.1em; }
-.prose h2, .prose h3 { color: var(--green); margin-top: 2em; }
+/* 长文正文：比例字体、舒适的行宽和行距；标题、代码、表格保留等宽的终端感 */
+.prose { max-width: 70ch; font-family: var(--sans); font-size: 17px; line-height: 1.75; color: var(--text); }
+.prose > * + * { margin-top: 1.15em; }
+.prose h2, .prose h3 { font-family: var(--mono); color: var(--green); line-height: 1.4; margin-top: 2.2em; }
+.prose h2 { font-size: 20px; }
+.prose h3 { font-size: 17px; }
 .prose h2::before { content: "## "; color: var(--dim); }
 .prose h3::before { content: "### "; color: var(--dim); }
-.prose blockquote { border-left: 2px solid var(--amber); padding-left: 14px; color: var(--amber); }
-.prose code { color: var(--amber); }
-.prose pre { padding: 16px; border: 1px solid var(--line); border-radius: 6px; overflow-x: auto; font-size: 13.5px; }
-.prose pre code { color: inherit; }
-.prose ul, .prose ol { padding-left: 1.4em; }
-.prose img { display: block; max-width: 100%; height: auto; border: 1px solid var(--line); border-radius: 6px; filter: brightness(.82); transition: filter .3s; }
+.prose strong { color: var(--text-strong); font-weight: 600; }
+.prose em { color: var(--text-strong); }
+/* 中文没有真正的斜体，浏览器只会把字形硬斜过来 */
+:lang(zh) .prose em { font-style: normal; font-weight: 600; }
+.prose a { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+.prose li + li { margin-top: .45em; }
+.prose ul, .prose ol { padding-left: 1.3em; }
+.prose blockquote { border-left: 2px solid var(--amber); padding-left: 16px; color: var(--soft); }
+.prose code { font-family: var(--mono); font-size: .86em; color: var(--amber); }
+.prose pre { padding: 16px; border: 1px solid var(--line); border-radius: 6px; overflow-x: auto; font-size: 13.5px; line-height: 1.6; background: var(--panel) !important; }
+.prose pre code { font-size: inherit; color: inherit; }
+.prose img { display: block; max-width: 100%; height: auto; border: 1px solid var(--line); border-radius: 6px; filter: var(--img-filter); transition: filter .3s; }
 .prose img:hover { filter: none; }
-.prose em { color: var(--fg); }
-.prose table { width: 100%; border-collapse: collapse; font-size: 13.5px; display: block; overflow-x: auto; }
-.prose th, .prose td { padding: 8px 14px 8px 0; text-align: left; border-bottom: 1px dashed var(--line); white-space: nowrap; }
+.prose table { width: 100%; border-collapse: collapse; font-family: var(--mono); font-size: 13.5px; line-height: 1.6; display: block; overflow-x: auto; }
+.prose th, .prose td { padding: 8px 18px 8px 0; text-align: left; border-bottom: 1px dashed var(--line); white-space: nowrap; }
 .prose th { color: var(--dim); font-weight: 400; }
 .prose td strong { color: var(--green); }
+
+/* 代码高亮：Shiki 双主题，颜色随当前主题切换 */
+.astro-code, .astro-code span { color: var(--shiki-dark); }
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) .astro-code, :root:not([data-theme="dark"]) .astro-code span { color: var(--shiki-light); }
+}
+:root[data-theme="light"] .astro-code, :root[data-theme="light"] .astro-code span { color: var(--shiki-light); }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
